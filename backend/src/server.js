@@ -11,12 +11,35 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'https://product-emi-switcher.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'https://product-emi-switcher.vercel.app',
-    credentials: true
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+
+      // Check against allowed origins or any Vercel preview domain
+      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      } else {
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
   })
 );
+
+// Handle preflight OPTIONS requests explicitly
+app.options('*', cors());
+Pu
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
