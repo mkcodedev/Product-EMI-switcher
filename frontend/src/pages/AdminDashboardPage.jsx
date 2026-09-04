@@ -639,7 +639,7 @@ const handleVariantChange = (vIdx, field, value) => {
                         {v.images.map((imgUrl, imgIdx) => (
                           <div key={imgIdx} className="relative group w-12 h-12 rounded-lg border overflow-hidden bg-gray-50">
                             <img
-                              src={imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${imgUrl}`}
+                              src={imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://product-emi-switcher.onrender.com'}${imgUrl}`}
                               alt="thumbnail"
                               className="w-full h-full object-contain"
                             />
