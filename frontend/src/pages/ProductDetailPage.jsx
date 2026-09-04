@@ -7,17 +7,23 @@ import {
   RotateCcw,
   Award,
   Lock,
-  Star,
-  Smartphone,
-  Cpu,
-  Camera,
-  BatteryCharging
+  Star
 } from 'lucide-react';
+
+const resolveImageUrl = (rawImg) => {
+  if (!rawImg) return 'https://via.placeholder.com/450x450?text=No+Image';
+  if (rawImg.startsWith('http://') || rawImg.startsWith('https://')) {
+    return rawImg;
+  }
+  const rawBase = import.meta.env.VITE_API_URL || 'https://product-emi-switcher.onrender.com/api';
+  const origin = rawBase.replace(/\/api\/?$/, '');
+  const cleanPath = rawImg.startsWith('/') ? rawImg : `/${rawImg}`;
+  return `${origin}${cleanPath}`;
+};
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
-  const [otherProducts, setOtherProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -31,10 +37,6 @@ export default function ProductDetailPage() {
       try {
         const res = await axiosClient.get(`/products/${slug}`);
         setProduct(res.data.data);
-
-        const allRes = await axiosClient.get('/products');
-        const others = (allRes.data.data || []).filter((p) => p.slug !== slug);
-        setOtherProducts(others);
       } catch (err) {
         setError('Unable to load product details.');
       } finally {
@@ -44,7 +46,6 @@ export default function ProductDetailPage() {
     fetchPageData();
   }, [slug]);
 
-  // Variant change hone par image index aur EMI selection reset karein
   useEffect(() => {
     setSelectedImageIndex(0);
     setSelectedEmiIndex(0);
@@ -75,37 +76,30 @@ export default function ProductDetailPage() {
   }
 
   const currentVariant = product.variants?.[selectedVariantIndex] || {};
-  
-  // FIX: Variant ke specific plans lo, fallback ke liye product level plans check karo
-  const rawPlans = (currentVariant.emiPlans && currentVariant.emiPlans.length > 0)
+  const availableEmiPlans = (currentVariant.emiPlans && currentVariant.emiPlans.length > 0)
     ? currentVariant.emiPlans
     : (product.emiPlans || []);
 
-  const availableEmiPlans = rawPlans;
   const currentEmi = availableEmiPlans[selectedEmiIndex] || availableEmiPlans[0] || {};
 
-  const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://product-emi-switcher.onrender.com';
   const galleryImages = currentVariant.images?.length > 0 ? currentVariant.images : [''];
-  const activeImage = galleryImages[selectedImageIndex] || galleryImages[0];
-  const activeImageUrl = activeImage?.startsWith('http') ? activeImage : `${backendOrigin}${activeImage}`;
+  const activeImageRaw = galleryImages[selectedImageIndex] || galleryImages[0];
+  const activeImageUrl = resolveImageUrl(activeImageRaw);
 
   const handleProceed = () => {
     alert(
-      `Proceeding with Order:\n` +
+      `Order Selection:\n` +
       `Model: ${product.name}\n` +
-      `Variant: ${currentVariant.storage} ${currentVariant.ram ? `(${currentVariant.ram})` : ''} - ${currentVariant.colorName}\n` +
+      `Variant: ${currentVariant.storage} - ${currentVariant.colorName}\n` +
       `Price: ₹${currentVariant.sellingPrice?.toLocaleString('en-IN')}\n` +
-      `Selected EMI Plan: ₹${currentEmi.monthlyAmount?.toLocaleString('en-IN')} x ${currentEmi.tenureMonths} Months (${currentEmi.interestRate}% Interest)`
+      `Plan: ₹${Number(currentEmi.monthlyAmount)?.toLocaleString('en-IN')} x ${currentEmi.tenureMonths} Months`
     );
   };
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-      {/* Visual Showcase Card */}
       <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-10 grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
-
-        {/* Left: Gallery & Finish Dots */}
+        {/* Left: Product Images */}
         <div className="md:col-span-5 flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-gray-100 pb-8 md:pb-0 md:pr-8">
           <div className="w-full text-left">
             <span className="text-[11px] font-bold text-red-500 uppercase tracking-widest bg-red-50 px-2.5 py-1 rounded">
@@ -124,8 +118,12 @@ export default function ProductDetailPage() {
               <img
                 src={activeImageUrl}
                 alt={`${product.name} - ${currentVariant.colorName}`}
+                crossOrigin="anonymous"
                 className="max-h-72 w-auto object-contain drop-shadow-md transition-all duration-200"
-                onError={(e) => { e.target.src = 'https://via.placeholder.com/350x350?text=No+Preview'; }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/450x450?text=Image+Unavailable';
+                }}
               />
             </div>
 
@@ -133,7 +131,7 @@ export default function ProductDetailPage() {
             {galleryImages.length > 1 && (
               <div className="flex gap-2.5 mt-5">
                 {galleryImages.map((img, idx) => {
-                  const url = img.startsWith('http') ? img : `${backendOrigin}${img}`;
+                  const url = resolveImageUrl(img);
                   return (
                     <button
                       key={idx}
@@ -145,7 +143,16 @@ export default function ProductDetailPage() {
                           : 'border-gray-200 opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <img src={url} alt="thumbnail" className="w-full h-full object-contain" />
+                      <img
+                        src={url}
+                        alt="thumbnail"
+                        crossOrigin="anonymous"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://via.placeholder.com/80x80?text=NA';
+                        }}
+                      />
                     </button>
                   );
                 })}
@@ -153,7 +160,7 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Color Finishes Selection */}
+          {/* Finishes Selection */}
           <div className="w-full text-center select-none">
             <p className="text-xs text-gray-500 mb-2.5 font-medium">
               Available in {product.variants.length} finishes
@@ -180,7 +187,6 @@ export default function ProductDetailPage() {
         {/* Right: Pricing & EMI Stack */}
         <div className="md:col-span-7 flex flex-col justify-between">
           <div>
-            {/* Dynamic Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl sm:text-4xl font-black text-gray-900">
                 ₹{currentVariant.sellingPrice?.toLocaleString('en-IN')}
@@ -196,7 +202,6 @@ export default function ProductDetailPage() {
               EMI plans backed by mutual funds
             </p>
 
-            {/* Variant Selector Tabs */}
             <div className="mb-5">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
                 Select Storage & Finish
@@ -219,7 +224,6 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* EMI Cards List -> FIX: maps on availableEmiPlans */}
             <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
               {availableEmiPlans.length === 0 ? (
                 <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl text-xs text-gray-500 text-center">
@@ -268,7 +272,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Action Button */}
           <div className="mt-8 pt-4 border-t border-gray-100">
             <button
               onClick={handleProceed}
@@ -290,7 +293,6 @@ export default function ProductDetailPage() {
             </button>
           </div>
         </div>
-
       </div>
 
       {/* Trust & Guarantee Section */}
@@ -340,29 +342,8 @@ export default function ProductDetailPage() {
               </div>
             </div>
           </div>
-
-          <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-xs">
-            <h3 className="text-base font-black text-gray-900 mb-4">Product Details & Hardware</h3>
-            <ul className="divide-y divide-gray-100 text-xs text-gray-700 space-y-2">
-              <li className="pt-2 flex justify-between"><span className="text-gray-500">Storage</span> <span className="font-semibold text-gray-900">{currentVariant.storage}</span></li>
-              <li className="pt-2 flex justify-between"><span className="text-gray-500">Color / Finish</span> <span className="font-semibold text-gray-900">{currentVariant.colorName}</span></li>
-              {product.specifications?.screenSize && (
-                <li className="pt-2 flex justify-between"><span className="text-gray-500">Display</span> <span className="font-semibold text-gray-900">{product.specifications?.screenSize}</span></li>
-              )}
-              {product.specifications?.processor && (
-                <li className="pt-2 flex justify-between"><span className="text-gray-500">Processor</span> <span className="font-semibold text-gray-900">{product.specifications?.processor}</span></li>
-              )}
-              {product.specifications?.rearCamera && (
-                <li className="pt-2 flex justify-between"><span className="text-gray-500">Rear Camera</span> <span className="font-semibold text-gray-900">{product.specifications?.rearCamera}</span></li>
-              )}
-              {product.specifications?.frontCamera && (
-                <li className="pt-2 flex justify-between"><span className="text-gray-500">Front Camera</span> <span className="font-semibold text-gray-900">{product.specifications?.frontCamera}</span></li>
-              )}
-            </ul>
-          </div>
         </div>
 
-        {/* Reviews Box */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs">
             <h3 className="text-base font-black text-gray-900 mb-2">Review & Rating</h3>

@@ -1,6 +1,5 @@
 import sharp from 'sharp';
 import { Readable } from 'stream';
-import mongoose from 'mongoose';
 import { getGridFSBucket } from '../config/db.js';
 
 export const uploadMedia = async (req, res) => {
@@ -55,10 +54,21 @@ export const getMediaStream = async (req, res) => {
       return res.status(404).json({ message: 'Image not found' });
     }
 
-    res.set('Content-Type', files[0].contentType || 'image/webp');
-    res.set('Cache-Control', 'public, max-age=2592000'); // 30 days cache
+    // Crucial for cross-origin image embedding between Vercel and Render
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Content-Type', files[0].contentType || 'image/webp');
+    res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 days cache
 
     const downloadStream = bucket.openDownloadStreamByName(filename);
+
+    downloadStream.on('error', (err) => {
+      if (!res.headersSent) {
+        return res.status(404).json({ message: 'Image stream error' });
+      }
+      res.end();
+    });
+
     downloadStream.pipe(res);
   } catch (error) {
     return res.status(500).json({ message: 'Failed to retrieve media file' });

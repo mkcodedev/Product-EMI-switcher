@@ -3,6 +3,17 @@ import { Link } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { ChevronRight, Smartphone, AlertCircle } from 'lucide-react';
 
+const resolveImageUrl = (rawImg) => {
+  if (!rawImg) return 'https://via.placeholder.com/350x350?text=No+Image';
+  if (rawImg.startsWith('http://') || rawImg.startsWith('https://')) {
+    return rawImg;
+  }
+  const rawBase = import.meta.env.VITE_API_URL || 'https://product-emi-switcher.onrender.com/api';
+  const origin = rawBase.replace(/\/api\/?$/, '');
+  const cleanPath = rawImg.startsWith('/') ? rawImg : `/${rawImg}`;
+  return `${origin}${cleanPath}`;
+};
+
 export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,8 +66,6 @@ export default function HomePage() {
     );
   }
 
-  const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://product-emi-switcher.onrender.com';
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
@@ -69,11 +78,13 @@ export default function HomePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {products.map((product) => {
           const defaultVariant = product.variants?.[0] || {};
-          const minEmi = product.emiPlans?.[0] || {};
-          
-          // Image array fallback
+          const availablePlans = defaultVariant.emiPlans?.length > 0 
+            ? defaultVariant.emiPlans 
+            : (product.emiPlans || []);
+          const minEmi = availablePlans[0] || {};
+
           const rawImg = defaultVariant.images?.[0] || defaultVariant.imageUrl || '';
-          const imgUrl = rawImg.startsWith('http') ? rawImg : `${backendOrigin}${rawImg}`;
+          const imgUrl = resolveImageUrl(rawImg);
 
           return (
             <Link
@@ -93,8 +104,12 @@ export default function HomePage() {
                   <img
                     src={imgUrl}
                     alt={product.name}
+                    crossOrigin="anonymous"
                     className="h-full w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-sm"
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/300x300?text=No+Image'; }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://via.placeholder.com/350x350?text=No+Image';
+                    }}
                   />
                 </div>
 
