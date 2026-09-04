@@ -84,7 +84,7 @@ export default function ProductDetailPage() {
   const availableEmiPlans = rawPlans;
   const currentEmi = availableEmiPlans[selectedEmiIndex] || availableEmiPlans[0] || {};
 
-  const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://product-emi-switcher.onrender.com';
   const galleryImages = currentVariant.images?.length > 0 ? currentVariant.images : [''];
   const activeImage = galleryImages[selectedImageIndex] || galleryImages[0];
   const activeImageUrl = activeImage?.startsWith('http') ? activeImage : `${backendOrigin}${activeImage}`;
