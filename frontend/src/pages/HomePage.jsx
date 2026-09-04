@@ -55,7 +55,7 @@ export default function HomePage() {
     );
   }
 
-  const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const backendOrigin = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://product-emi-switcher.onrender.com';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

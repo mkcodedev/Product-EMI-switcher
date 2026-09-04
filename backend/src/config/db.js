@@ -3,18 +3,29 @@ import mongoose from 'mongoose';
 let gfsBucket = null;
 
 export const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    console.error('FATAL: MONGODB_URI environment variable is missing.');
+    process.exit(1);
+  }
+
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
+    });
+
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
     const db = mongoose.connection.db;
     gfsBucket = new mongoose.mongo.GridFSBucket(db, {
       bucketName: 'mediaUploads'
     });
+
     return conn;
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
+    console.log('Retrying connection in 5 seconds...');
+    setTimeout(connectDB, 5000);
   }
 };
 
