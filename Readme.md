@@ -1,241 +1,367 @@
-# 1Fi Store — Product & Mutual Fund-Backed EMI Platform
+# 1Fi Store
 
-> Full-stack dynamic smartphone catalog with variant-linked EMI calculations and zero hardcoded data.
+> A full-stack smartphone catalog with variant-aware pricing, zero-interest EMI plans, admin management, and MongoDB-backed product media.
 
----
-## Admin Access
-Portal Route: /super/admin
+[![Frontend](https://img.shields.io/badge/frontend-React%2018-149eca?style=flat-square&logo=react&logoColor=white)](frontend/)
+[![Backend](https://img.shields.io/badge/backend-Express%204-111827?style=flat-square&logo=express&logoColor=white)](backend/)
+[![Database](https://img.shields.io/badge/database-MongoDB%20%2B%20GridFS-47A248?style=flat-square&logo=mongodb&logoColor=white)](backend/src/config/db.js)
+[![License](https://img.shields.io/badge/license-private-lightgrey?style=flat-square)](#)
 
-Test Credentials: Email: test@gmail.com | Password: test123@
+1Fi Store is a dynamic product catalog for smartphones and EMI-led shopping flows. Product data, variants, EMI plans, reviews, and media are stored in MongoDB rather than hardcoded in the frontend.
 
-## I. Tech Stack
+## Contents
 
-* **Frontend:** React, Vite, React Router, Tailwind CSS, Axios, Lucide Icons
-* **Backend:** Node.js, Express.js, Multer, Sharp (WebP optimization)[cite: 2]
-* **Database:** MongoDB Atlas, Mongoose, GridFS Stream Storage[cite: 2]
-* **Auth & Security:** JWT (3-day `httpOnly` cookie), bcryptjs, max 5 admins limit
+- [Highlights](#highlights)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Quick start](#quick-start)
+- [Environment variables](#environment-variables)
+- [Admin access](#admin-access)
+- [API reference](#api-reference)
+- [Data model](#data-model)
+- [Seed data](#seed-data)
+- [EMI calculation](#emi-calculation)
+- [Security and media](#security-and-media)
 
----
+## Highlights
 
-## II. Database Schema & Architecture
+- Browse a MongoDB-backed smartphone catalog.
+- Switch between product variants with independent price, color, stock, image, and EMI data.
+- Compare EMI tenures, interest rates, and cashback values.
+- Manage products and optimized images from the protected admin portal.
+- Store uploaded images as WebP files in MongoDB GridFS.
+- Keep admin sessions in an `httpOnly` JWT cookie valid for three days.
 
-### 1. Product Model (`backend/src/models/Product.js`)
-* **Product:** `name`, `slug` (unique), `brand`, `tag`, `sellerName`, `shippingDays`, `description`, `specifications`
-* **Variants (min 2 per product):** `storage`, `ram`, `colorName`, `colorHex`, `mrp`, `sellingPrice`, `images[]`[cite: 2]
-* **Variant EMI Plans:** `monthlyAmount`, `tenureMonths`, `interestRate`, `cashback`
+## Tech stack
 
-```javascript
-// Mathematical calculation executed for auto-generated EMI tiers:
-Monthly_EMI = Math.round((Price * (1 + (Rate * Tenure) / 1200)) / Tenure);
+| Layer | Technologies |
+| --- | --- |
+| Storefront | React, React Router, Vite, Tailwind CSS, Axios, Lucide React |
+| API | Node.js, Express, Mongoose, CORS, cookie-parser, dotenv |
+| Authentication | JWT, bcryptjs, `httpOnly` cookies |
+| Media processing | Multer, Sharp, MongoDB GridFS |
+| Database | MongoDB Atlas or any MongoDB deployment supported by Mongoose |
 
+## Project structure
+
+```text
+.
+├── backend/
+│   ├── src/
+│   │   ├── config/db.js             # MongoDB and GridFS connection
+│   │   ├── controllers/             # Auth, product, and media behavior
+│   │   ├── middleware/              # JWT protection and uploads
+│   │   ├── models/                  # Mongoose schemas
+│   │   ├── routes/                  # HTTP route definitions
+│   │   └── server.js                # Express application entry point
+│   ├── seed.json                    # Sample catalog documents
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── api/                     # Axios client
+│   │   ├── components/              # Shared UI components
+│   │   └── pages/                   # Storefront and admin pages
+│   └── package.json
+└── Readme.md
 ```
-## 2. Admin Model (backend/src/models/Admin.js)
-name, email (unique, lowercase), passwordHash, role (strictly capped at 5 total admins)
 
-### III. Seed Data (seed.json)
-```javascript 
-[
-  {
-    "name": "Apple iPhone 17 Pro",
-    "slug": "apple-iphone-17-pro",
-    "brand": "Apple",
-    "tag": "NEW",
-    "sellerName": "Balaji Infocom",
-    "shippingDays": "Dispatch in less than 48 hours",
-    "description": "Titanium design with A19 Pro Bionic chip and 48MP triple camera array.",
-    "specifications": {
-      "screenSize": "6.3 inch Super Retina XDR OLED",
-      "processor": "Apple A19 Pro Hexa-Core",
-      "rearCamera": "48MP + 48MP + 48MP",
-      "frontCamera": "18MP TrueDepth",
-      "battery": "Up to 27 hours video playback"
-    },
-    "variants": [
-      {
-        "storage": "256GB",
-        "ram": "12GB",
-        "colorName": "Silver",
-        "colorHex": "#C0C0C0",
-        "mrp": 134900,
-        "sellingPrice": 128990,
-        "images": ["/api/media/iphone_silver.webp"],
-        "emiPlans": [
-          { "monthlyAmount": 44967, "tenureMonths": 3, "interestRate": 0, "cashback": 7500 },
-          { "monthlyAmount": 22483, "tenureMonths": 6, "interestRate": 0, "cashback": 7500 },
-          { "monthlyAmount": 11242, "tenureMonths": 12, "interestRate": 0, "cashback": 7500 }
-        ]
-      },
-      {
-        "storage": "512GB",
-        "ram": "12GB",
-        "colorName": "Cosmic Orange",
-        "colorHex": "#EA580C",
-        "mrp": 154900,
-        "sellingPrice": 148990,
-        "images": ["/api/media/iphone_orange.webp"],
-        "emiPlans": [
-          { "monthlyAmount": 49663, "tenureMonths": 3, "interestRate": 0, "cashback": 7500 },
-          { "monthlyAmount": 24832, "tenureMonths": 6, "interestRate": 0, "cashback": 7500 },
-          { "monthlyAmount": 12416, "tenureMonths": 12, "interestRate": 0, "cashback": 7500 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Samsung Galaxy S24 Ultra",
-    "slug": "samsung-s24-ultra",
-    "brand": "Samsung",
-    "tag": "AI PHONE",
-    "sellerName": "Balaji Infocom",
-    "shippingDays": "Dispatch in less than 48 hours",
-    "description": "Galaxy AI phone with Titanium frame and 200MP Quad Telephoto camera.",
-    "specifications": {
-      "screenSize": "6.8 inch Dynamic AMOLED 2X 120Hz",
-      "processor": "Snapdragon 8 Gen 3 for Galaxy",
-      "rearCamera": "200MP + 50MP + 12MP + 10MP",
-      "frontCamera": "12MP Dual Pixel",
-      "battery": "5000 mAh with 45W Fast Charging"
-    },
-    "variants": [
-      {
-        "storage": "256GB",
-        "ram": "12GB",
-        "colorName": "Titanium Gray",
-        "colorHex": "#71717A",
-        "mrp": 134999,
-        "sellingPrice": 129999,
-        "images": ["/api/media/s24_gray.webp"],
-        "emiPlans": [
-          { "monthlyAmount": 43333, "tenureMonths": 3, "interestRate": 0, "cashback": 5000 },
-          { "monthlyAmount": 10833, "tenureMonths": 12, "interestRate": 0, "cashback": 5000 }
-        ]
-      },
-      {
-        "storage": "512GB",
-        "ram": "12GB",
-        "colorName": "Titanium Black",
-        "colorHex": "#18181B",
-        "mrp": 144999,
-        "sellingPrice": 139999,
-        "images": ["/api/media/s24_black.webp"],
-        "emiPlans": [
-          { "monthlyAmount": 46666, "tenureMonths": 3, "interestRate": 0, "cashback": 5000 },
-          { "monthlyAmount": 11667, "tenureMonths": 12, "interestRate": 0, "cashback": 5000 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Google Pixel 9 Pro",
-    "slug": "google-pixel-9-pro",
-    "brand": "Google",
-    "tag": "PRO CAMERA",
-    "sellerName": "Balaji Infocom",
-    "shippingDays": "Dispatch in less than 48 hours",
-    "description": "Engineered by Google with Gemini Nano and Tensor G4 processor.",
-    "specifications": {
-      "screenSize": "6.3 inch Super Actua LTPO OLED",
-      "processor": "Google Tensor G4",
-      "rearCamera": "50MP + 48MP + 48MP",
-      "frontCamera": "42MP Dual PD",
-      "battery": "4700 mAh with Fast Charging"
-    },
-    "variants": [
-      {
-        "storage": "128GB",
-        "ram": "16GB",
-        "colorName": "Obsidian",
-        "colorHex": "#1F2937",
-        "mrp": 109999,
-        "sellingPrice": 104999,
-        "images": ["/api/media/pixel_obsidian.webp"],
-        "emiPlans": [
-          { "monthlyAmount": 34999, "tenureMonths": 3, "interestRate": 0, "cashback": 4000 },
-          { "monthlyAmount": 8750, "tenureMonths": 12, "interestRate": 0, "cashback": 4000 }
-        ]
-      },
-      {
-        "storage": "256GB",
-        "ram": "16GB",
-        "colorName": "Porcelain",
-        "colorHex": "#F3F4F6",
-        "mrp": 119999,
-        "sellingPrice": 114999,
-        "images": ["/api/media/pixel_porcelain.webp"],
-        "emiPlans": [
-          { "monthlyAmount": 38333, "tenureMonths": 3, "interestRate": 0, "cashback": 4000 },
-          { "monthlyAmount": 9583, "tenureMonths": 12, "interestRate": 0, "cashback": 4000 }
-        ]
-      }
-    ]
-  }
-] 
+Useful source links:
+
+- [Product schema](backend/src/models/Product.js)
+- [Admin schema](backend/src/models/Admin.js)
+- [Product routes](backend/src/routes/productRoutes.js)
+- [Authentication routes](backend/src/routes/authRoutes.js)
+- [Media routes](backend/src/routes/mediaRoutes.js)
+- [Sample seed data](backend/seed.json)
+- [Frontend application](frontend/src/App.jsx)
+
+## Quick start
+
+### Prerequisites
+
+- Node.js 18 or newer
+- npm
+- A MongoDB database, such as MongoDB Atlas
+
+### 1. Install dependencies
+
+From the repository root:
+
+```bash
+npm --prefix backend install
+npm --prefix frontend install
 ```
-## IV. Setup & Run Instructions
-### 1. Install All Dependencies (Single Command)
-Bash
->(cd backend && npm install) && (cd frontend && npm install)
-### 2. Configure Environment Variables
-backend/.env:
-```javascript
+
+### 2. Configure environment variables
+
+Create `backend/.env`:
+
+```env
 PORT=5000
-MONGODB_URI=your_mongodb_atlas_connection_string
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
 CLIENT_URL=http://localhost:5173
-JWT_SECRET=your_jwt_secret_key
+JWT_SECRET=replace-with-a-long-random-secret
 NODE_ENV=development
 ```
-### frontend/.env:
-```
+
+Create `frontend/.env`:
+
+```env
 VITE_API_URL=http://localhost:5000/api
 ```
-## 3. Run Applications
-Backend: cd backend && npm run dev (Runs on http://localhost:5000)
 
-Frontend: cd frontend && npm run dev (Runs on http://localhost:5173)
+Never commit either file. Both are ignored by [`.gitignore`](.gitignore).
 
+### 3. Start the applications
 
-## ## V. API Endpoints & Example Responses
+Run the API in one terminal:
 
-| Method | Endpoint | Access | Purpose | Status |
-|---|---|---|---|---|
-| GET | `/api/products` | Public | List storefront catalog products | 🟢 |
-| GET | `/api/products/:slug` | Public | Get product details & variant EMI matrix | 🟢 |
-| GET | `/api/products/meta/suggestions` | Public | Autocomplete values for inputs | 🟢 |
-| GET | `/api/media/:filename` | Public | Stream optimized WebP from GridFS | 🟢 |
-| POST | `/api/admin/login` | Public | Log in admin (returns 3-day cookie) | 🟢 |
-| POST | `/api/admin/signup` | Public | Register admin (enforces 5-admin cap) | 🟢 |
-| POST | `/api/admin/upload` | Admin | Upload variant photo to MongoDB | 🟢 |
-| POST | `/api/products/admin` | Admin | Create product with variants & plans | 🟢 |
-| PUT | `/api/products/admin/:id` | Admin | Update existing product & recalculations | 🟢 |
-| DELETE | `/api/products/admin/:id` | Admin | Delete product from catalog | 🟢 |
+```bash
+cd backend
+npm run dev
+```
 
+Run the frontend in another terminal:
 
-## Example Response: GET /api/products/:slug
-[cite: 1, 2]
-``` javascript
-JSON
+```bash
+cd frontend
+npm run dev
+```
+
+Default URLs:
+
+- Storefront: `http://localhost:5173`
+- API health: `http://localhost:5000/`
+- API status: `http://localhost:5000/api`
+- Admin portal: `http://localhost:5173/super/admin`
+
+For a production API process, use `npm start` from `backend/`. To build the frontend, use `npm run build` from `frontend/`.
+
+## Environment variables
+
+| Variable | App | Required | Purpose |
+| --- | --- | --- | --- |
+| `PORT` | Backend | No | API port; defaults to `5000` |
+| `MONGODB_URI` | Backend | Yes | MongoDB connection string |
+| `CLIENT_URL` | Backend | Yes for deployment | Allowed frontend origin for CORS |
+| `JWT_SECRET` | Backend | Yes | Secret used to sign admin tokens |
+| `NODE_ENV` | Backend | No | Enables production cookie behavior when set to `production` |
+| `VITE_API_URL` | Frontend | Yes | Base URL for API requests |
+
+## Admin access
+
+The admin portal is available at `/super/admin`.
+
+For the local demo environment documented by the original project:
+
+```text
+Email: test@gmail.com
+Password: test123@
+```
+
+Change or remove demo credentials before deploying. New admin accounts require a name, valid email, matching passwords, and a password of at least eight characters. The API allows a maximum of five admin accounts.
+
+## API reference
+
+All API routes are prefixed with `/api`. Protected routes require the `admin_token` cookie created by login.
+
+### Health and public catalog
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/` | Backend health and database readiness |
+| `GET` | `/api` | API status |
+| `GET` | `/api/products` | Return products sorted by newest first |
+| `GET` | `/api/products/:slug` | Return one product and its variants |
+| `GET` | `/api/products/meta/suggestions` | Return distinct brands, tags, storage values, RAM values, and colors |
+| `GET` | `/api/media/:filename` | Stream an optimized image from GridFS |
+
+### Authentication
+
+| Method | Endpoint | Access | Description |
+| --- | --- | --- | --- |
+| `POST` | `/api/admin/signup` | Public | Create an admin account, up to the five-account limit |
+| `POST` | `/api/admin/login` | Public | Authenticate and set a three-day `httpOnly` cookie |
+| `POST` | `/api/admin/logout` | Public | Clear the admin cookie |
+| `GET` | `/api/admin/me` | Admin | Return the authenticated admin |
+
+### Admin catalog management
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/products/admin` | Create a product with at least two variants |
+| `PUT` | `/api/products/admin/:id` | Update a product and validate its variants and EMI plans |
+| `DELETE` | `/api/products/admin/:id` | Delete a product |
+| `POST` | `/api/media/upload` | Upload, resize, convert, and store an image as WebP |
+
+### Example: list products
+
+```bash
+curl http://localhost:5000/api/products
+```
+
+```json
 {
-  "data": {
-    "name": "Apple iPhone 17 Pro",
-    "slug": "apple-iphone-17-pro",
-    "brand": "Apple",
-    "variants": [
-      {
-        "storage": "256GB",
-        "colorName": "Silver",
-        "sellingPrice": 128990,
-        "mrp": 134900,
-        "images": ["/api/media/img_102.webp"],
-        "emiPlans": [
-          {
-            "monthlyAmount": 11242,
-            "tenureMonths": 12,
-            "interestRate": 0,
-            "cashback": 7500
-          }
-        ]
-      }
-    ]
-  }
+  "data": [
+    {
+      "name": "Apple iPhone 17 Pro",
+      "slug": "apple-iphone-17-pro",
+      "brand": "Apple",
+      "variants": [
+        {
+          "storage": "256GB",
+          "ram": "12GB",
+          "colorName": "Silver",
+          "sellingPrice": 128990,
+          "emiPlans": [
+            {
+              "monthlyAmount": 11242,
+              "tenureMonths": 12,
+              "interestRate": 0,
+              "cashback": 7500
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
+
+### Example: create a product
+
+Send JSON to `POST /api/products/admin` with the admin cookie:
+
+```json
+{
+  "name": "Example Phone",
+  "slug": "example-phone",
+  "brand": "Example",
+  "description": "A product description.",
+  "specifications": {
+    "screenSize": "6.7 inch OLED",
+    "processor": "Example X1",
+    "battery": "5000 mAh"
+  },
+  "variants": [
+    {
+      "storage": "128GB",
+      "ram": "8GB",
+      "colorName": "Black",
+      "colorHex": "#111111",
+      "mrp": 59999,
+      "sellingPrice": 54999,
+      "images": ["/api/media/example.webp"],
+      "emiPlans": [
+        {
+          "monthlyAmount": 4583,
+          "tenureMonths": 12,
+          "interestRate": 0,
+          "cashback": 2000
+        }
+      ]
+    },
+    {
+      "storage": "256GB",
+      "ram": "8GB",
+      "colorName": "Blue",
+      "colorHex": "#2563EB",
+      "mrp": 64999,
+      "sellingPrice": 59999,
+      "images": ["/api/media/example-blue.webp"],
+      "emiPlans": [
+        {
+          "monthlyAmount": 5000,
+          "tenureMonths": 12,
+          "interestRate": 0,
+          "cashback": 2000
+        }
+      ]
+    }
+  ]
+}
+```
+
+Successful catalog responses use `{ "data": ... }`. Validation and authentication failures use `{ "message": "..." }`.
+
+## Data model
+
+### Product document
+
+Defined in [`backend/src/models/Product.js`](backend/src/models/Product.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | String | Required product name |
+| `slug` | String | Required, unique, lowercase URL identifier |
+| `brand` | String | Required brand |
+| `tag` | String | Defaults to `NEW` |
+| `sellerName` | String | Defaults to `Balaji Infocom` |
+| `shippingDays` | String | Dispatch and delivery message |
+| `ratingAverage` / `ratingCount` | Number | Catalog rating summary |
+| `description` | String | Required product description |
+| `specifications` | Object | Storage, screen, cameras, processor, and battery details |
+| `reviews` | Array | Author, city, rating, comment, verification, and date |
+| `variants` | Array | Requires at least two variants |
+
+Each variant contains `storage`, `ram`, `colorName`, `colorHex`, `mrp`, `sellingPrice`, `images`, `stock`, and `emiPlans`. Each variant requires at least one image and one EMI plan.
+
+Each EMI plan contains:
+
+```text
+monthlyAmount, tenureMonths, interestRate, cashback
+```
+
+### Admin document
+
+Defined in [`backend/src/models/Admin.js`](backend/src/models/Admin.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | String | Required |
+| `email` | String | Required, unique, lowercase, validated format |
+| `passwordHash` | String | bcrypt hash; raw passwords are never stored |
+| `role` | String | Immutable and defaults to `admin` |
+
+Both schemas include `createdAt` and `updatedAt` timestamps.
+
+## Seed data
+
+The documented catalog snapshot contains three products, each with two variants and variant-specific EMI plans:
+
+| Product | Variants | Example EMI tenures |
+| --- | ---: | --- |
+| Apple iPhone 17 Pro | 2 | 3, 6, and 12 months |
+| Samsung Galaxy S24 Ultra | 2 | 3 and 12 months |
+| Google Pixel 9 Pro | 2 | 3 and 12 months |
+
+The checked-in [`backend/seed.json`](backend/seed.json) contains the sample catalog documents. The repository does not currently include an executable seed runner, so import the JSON through the admin dashboard or your preferred MongoDB tooling after configuring the database. The API requires at least two variants and one EMI plan per variant.
+
+## EMI calculation
+
+The intended interest-adjusted monthly amount can be represented as:
+
+```text
+Monthly EMI = round((sellingPrice * (1 + (interestRate * tenureMonths) / 1200)) / tenureMonths)
+```
+
+For a zero-interest 12-month plan on a price of `128990`:
+
+```text
+round(128990 / 12) = 10749
+```
+
+The current API accepts and stores `monthlyAmount` in the submitted EMI plan. It does not calculate or overwrite that value server-side, so clients or a future seed/import script should calculate it before sending data.
+
+## Security and media
+
+- Passwords are hashed with bcryptjs before storage.
+- Admin JWTs are stored in an `httpOnly` cookie and expire after three days.
+- Product mutations and media uploads require admin authentication.
+- CORS is restricted to configured client origins and approved Vercel deployments.
+- Uploaded images are resized to fit within `1200 x 1200`, converted to WebP at quality 80, and stored in the `mediaUploads` GridFS bucket.
+- Keep `MONGODB_URI` and `JWT_SECRET` in environment variables and rotate any credentials used for testing before deployment.
+
+## License
+
+This project is currently intended for private/demo use. Add a project license before distributing it publicly.
