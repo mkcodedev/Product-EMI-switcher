@@ -11,11 +11,17 @@ import mediaRoutes from './routes/mediaRoutes.js';
 
 const app = express();
 
+const cleanUrl = (value) => {
+  if (!value) return value;
+  const match = value.match(/https?:\/\/[^\s\])]+/i);
+  return match ? match[0].replace(/[),]+$/, '') : value.trim();
+};
+
 // Trust reverse proxy (Crucial for secure HTTPS cookies on Render)
 app.set('trust proxy', 1);
 
 const allowedOrigins = [
-  process.env.CLIENT_URL,
+  cleanUrl(process.env.CLIENT_URL),
   'https://product-emi-switcher.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000'
@@ -58,6 +64,10 @@ app.get('/', (req, res) => {
     database: isDBReady() ? 'connected' : 'disconnected',
     message: 'Catalog backend running'
   });
+});
+
+app.get('/api', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'API is running' });
 });
 
 // API Endpoints
