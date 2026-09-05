@@ -4,7 +4,7 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { connectDB } from './config/db.js';
+import { connectDB, isDBReady } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import mediaRoutes from './routes/mediaRoutes.js';
@@ -53,7 +53,11 @@ connectDB();
 
 // Root health check endpoint
 app.get('/', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Catalog backend running' });
+  res.status(isDBReady() ? 200 : 503).json({
+    status: isDBReady() ? 'ok' : 'degraded',
+    database: isDBReady() ? 'connected' : 'disconnected',
+    message: 'Catalog backend running'
+  });
 });
 
 // API Endpoints

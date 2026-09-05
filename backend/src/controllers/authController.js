@@ -83,11 +83,11 @@ export const loginAdmin = async (req, res) => {
       { expiresIn: '3d' }
     );
 
-    const isProd = process.env.NODE_ENV === 'production';
+    const isCrossSite = process.env.NODE_ENV === 'production' || req.secure;
     res.cookie('admin_token', token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      secure: isCrossSite,
+      sameSite: isCrossSite ? 'none' : 'lax',
       maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
     });
 
@@ -101,11 +101,11 @@ export const loginAdmin = async (req, res) => {
 };
 
 export const logoutAdmin = (req, res) => {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isCrossSite = process.env.NODE_ENV === 'production' || req.secure;
   res.clearCookie('admin_token', {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax'
+    secure: isCrossSite,
+    sameSite: isCrossSite ? 'none' : 'lax'
   });
   return res.status(200).json({ message: 'Successfully logged out' });
 };

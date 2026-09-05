@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 let gfsBucket = null;
+let dbReady = false;
 
 export const connectDB = async () => {
   if (!process.env.MONGODB_URI) {
@@ -15,6 +16,7 @@ export const connectDB = async () => {
     });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    dbReady = true;
 
     const db = mongoose.connection.db;
     gfsBucket = new mongoose.mongo.GridFSBucket(db, {
@@ -23,6 +25,7 @@ export const connectDB = async () => {
 
     return conn;
   } catch (error) {
+    dbReady = false;
     console.error(`MongoDB Connection Error: ${error.message}`);
     console.log('Retrying connection in 5 seconds...');
     setTimeout(connectDB, 5000);
@@ -35,3 +38,5 @@ export const getGridFSBucket = () => {
   }
   return gfsBucket;
 };
+
+export const isDBReady = () => dbReady && mongoose.connection.readyState === 1;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import axiosClient, { resolveMediaUrl } from '../api/axiosClient';
 import {
   Check,
   Truck,
@@ -9,17 +9,6 @@ import {
   Lock,
   Star
 } from 'lucide-react';
-
-const resolveImageUrl = (rawImg) => {
-  if (!rawImg) return 'https://via.placeholder.com/450x450?text=No+Image';
-  if (rawImg.startsWith('http://') || rawImg.startsWith('https://')) {
-    return rawImg;
-  }
-  const rawBase = import.meta.env.VITE_API_URL || 'https://product-emi-switcher.onrender.com/api';
-  const origin = rawBase.replace(/\/api\/?$/, '');
-  const cleanPath = rawImg.startsWith('/') ? rawImg : `/${rawImg}`;
-  return `${origin}${cleanPath}`;
-};
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -84,7 +73,7 @@ export default function ProductDetailPage() {
 
   const galleryImages = currentVariant.images?.length > 0 ? currentVariant.images : [''];
   const activeImageRaw = galleryImages[selectedImageIndex] || galleryImages[0];
-  const activeImageUrl = resolveImageUrl(activeImageRaw);
+  const activeImageUrl = resolveMediaUrl(activeImageRaw, 'https://via.placeholder.com/450x450?text=No+Image');
 
   const handleProceed = () => {
     alert(
@@ -131,7 +120,7 @@ export default function ProductDetailPage() {
             {galleryImages.length > 1 && (
               <div className="flex gap-2.5 mt-5">
                 {galleryImages.map((img, idx) => {
-                  const url = resolveImageUrl(img);
+                  const url = resolveMediaUrl(img, 'https://via.placeholder.com/80x80?text=NA');
                   return (
                     <button
                       key={idx}

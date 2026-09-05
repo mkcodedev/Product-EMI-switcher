@@ -1,18 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import axiosClient, { resolveMediaUrl } from '../api/axiosClient';
 import { ChevronRight, Smartphone, AlertCircle } from 'lucide-react';
-
-const resolveImageUrl = (rawImg) => {
-  if (!rawImg) return 'https://via.placeholder.com/350x350?text=No+Image';
-  if (rawImg.startsWith('http://') || rawImg.startsWith('https://')) {
-    return rawImg;
-  }
-  const rawBase = import.meta.env.VITE_API_URL || 'https://product-emi-switcher.onrender.com/api';
-  const origin = rawBase.replace(/\/api\/?$/, '');
-  const cleanPath = rawImg.startsWith('/') ? rawImg : `/${rawImg}`;
-  return `${origin}${cleanPath}`;
-};
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
@@ -84,7 +73,7 @@ export default function HomePage() {
           const minEmi = availablePlans[0] || {};
 
           const rawImg = defaultVariant.images?.[0] || defaultVariant.imageUrl || '';
-          const imgUrl = resolveImageUrl(rawImg);
+          const imgUrl = resolveMediaUrl(rawImg, 'https://via.placeholder.com/350x350?text=No+Image');
 
           return (
             <Link

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import axiosClient, { resolveMediaUrl } from '../api/axiosClient';
 import { Trash2, Plus, LogOut, UploadCloud, Edit3, X, CheckCircle2 } from 'lucide-react';
 
 const STANDARD_TENURES = [3, 6, 9, 12];
@@ -639,7 +639,7 @@ const handleVariantChange = (vIdx, field, value) => {
                         {v.images.map((imgUrl, imgIdx) => (
                           <div key={imgIdx} className="relative group w-12 h-12 rounded-lg border overflow-hidden bg-gray-50">
                             <img
-                              src={imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://product-emi-switcher.onrender.com'}${imgUrl}`}
+                              src={resolveMediaUrl(imgUrl, 'https://via.placeholder.com/80x80?text=NA')}
                               alt="thumbnail"
                               className="w-full h-full object-contain"
                             />
