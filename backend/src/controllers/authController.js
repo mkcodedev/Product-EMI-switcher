@@ -88,6 +88,7 @@ export const loginAdmin = async (req, res) => {
       httpOnly: true,
       secure: isCrossSite,
       sameSite: isCrossSite ? 'none' : 'lax',
+      path: '/',
       maxAge: 3 * 24 * 60 * 60 * 1000 // 3 days
     });
 
@@ -105,7 +106,16 @@ export const logoutAdmin = (req, res) => {
   res.clearCookie('admin_token', {
     httpOnly: true,
     secure: isCrossSite,
-    sameSite: isCrossSite ? 'none' : 'lax'
+    sameSite: isCrossSite ? 'none' : 'lax',
+    path: '/'
+  });
+  res.cookie('admin_token', '', {
+    httpOnly: true,
+    secure: isCrossSite,
+    sameSite: isCrossSite ? 'none' : 'lax',
+    path: '/',
+    expires: new Date(0),
+    maxAge: 0
   });
   return res.status(200).json({ message: 'Successfully logged out' });
 };
