@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const configuredApiUrl = import.meta.env.VITE_API_URL || 'https://product-emi-switcher.onrender.com/api';
+const configuredApiUrl = import.meta.env.PROD
+  ? '/api'
+  : import.meta.env.VITE_API_URL || 'https://product-emi-switcher.onrender.com/api';
 const configuredUrlMatch = configuredApiUrl.match(/https?:\/\/[^\s\])]+/i);
 export const API_BASE_URL = (configuredUrlMatch?.[0] || configuredApiUrl).replace(/[),]+$/, '').replace(/\/$/, '');
 export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
