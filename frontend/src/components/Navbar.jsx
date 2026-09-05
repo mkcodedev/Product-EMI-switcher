@@ -39,15 +39,13 @@ export default function Navbar() {
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span className="hidden sm:inline">100% Verified EMI Plans</span>
           </span>
-          {!isAdminAuthenticated && (
-            <Link
-              to="/super/admin"
-              className="inline-flex items-center gap-1.5 bg-gray-900 hover:bg-orange-500 text-white font-bold px-3 py-2 rounded-lg transition-colors"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Admin Login
-            </Link>
-          )}
+          <Link
+            to={isAdminAuthenticated ? '/super/admin/dashboard' : '/super/admin'}
+            className="inline-flex items-center gap-1.5 bg-gray-900 hover:bg-orange-500 text-white font-bold px-3 py-2 rounded-lg transition-colors"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            {isAdminAuthenticated ? 'Admin Dashboard' : 'Admin Login'}
+          </Link>
         </div>
       </div>
     </header>
