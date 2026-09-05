@@ -39,14 +39,24 @@ export default function AdminAuthPage() {
         window.dispatchEvent(new CustomEvent('admin-auth-changed', {
           detail: { authenticated: true }
         }));
+        window.dispatchEvent(new CustomEvent('app-notification', {
+          detail: { type: 'success', message: 'Signed in successfully.' }
+        }));
         navigate('/super/admin/dashboard');
       } else {
         const res = await axiosClient.post('/admin/signup', formData);
         setSuccess(res.data.message || 'Admin account created. Log in now.');
+        window.dispatchEvent(new CustomEvent('app-notification', {
+          detail: { type: 'success', message: res.data.message || 'Admin account created. Log in now.' }
+        }));
         setIsLogin(true);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication failed');
+      const message = err.response?.data?.message || 'Authentication failed';
+      setError(message);
+      window.dispatchEvent(new CustomEvent('app-notification', {
+        detail: { type: 'error', message }
+      }));
     } finally {
       setLoading(false);
     }

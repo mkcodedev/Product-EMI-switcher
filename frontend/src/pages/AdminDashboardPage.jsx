@@ -84,6 +84,10 @@ export default function AdminDashboardPage() {
 
   const [form, setForm] = useState(BLANK_FORM);
 
+  const notify = (type, message) => {
+    window.dispatchEvent(new CustomEvent('app-notification', { detail: { type, message } }));
+  };
+
   const loadData = async () => {
     try {
       const meRes = await axiosClient.get('/admin/me');
@@ -110,6 +114,7 @@ export default function AdminDashboardPage() {
       window.dispatchEvent(new CustomEvent('admin-auth-changed', {
         detail: { authenticated: false }
       }));
+      notify('success', 'Signed out successfully.');
       navigate('/super/admin', { replace: true });
     }
   };
@@ -131,7 +136,7 @@ export default function AdminDashboardPage() {
       updated[variantIdx].images = [...updated[variantIdx].images, ...uploadedUrls];
       setForm({ ...form, variants: updated });
     } catch (err) {
-      alert(err.response?.data?.message || 'Error uploading photos');
+      notify('error', err.response?.data?.message || 'Error uploading photos');
     } finally {
       setUploading(false);
     }
@@ -181,7 +186,7 @@ const handleVariantChange = (vIdx, field, value) => {
 
   const removeVariantRow = (idx) => {
     if (form.variants.length <= 2) {
-      alert('A minimum of 2 variants is strictly required.');
+      notify('error', 'A minimum of 2 variants is strictly required.');
       return;
     }
     const filtered = form.variants.filter((_, i) => i !== idx);
@@ -229,7 +234,7 @@ const handleVariantChange = (vIdx, field, value) => {
     const updatedVariants = [...form.variants];
     const currentVariant = updatedVariants[activeVariantForEmi];
     if (currentVariant.emiPlans.length <= 1) {
-      alert('At least 1 EMI plan must be maintained.');
+      notify('error', 'At least 1 EMI plan must be maintained.');
       return;
     }
     currentVariant.emiPlans = currentVariant.emiPlans.filter((_, i) => i !== planIdx);
@@ -308,15 +313,15 @@ const handleVariantChange = (vIdx, field, value) => {
     try {
       if (editingId) {
         await axiosClient.put(`/products/admin/${editingId}`, payload);
-        alert('Product successfully updated in MongoDB!');
+        notify('success', 'Product successfully updated.');
       } else {
         await axiosClient.post('/products/admin', payload);
-        alert('Product published to MongoDB catalog!');
+        notify('success', 'Product published to catalog.');
       }
       cancelEdit();
       loadData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to submit form');
+      notify('error', err.response?.data?.message || 'Failed to submit form');
     }
   };
 
@@ -327,7 +332,7 @@ const handleVariantChange = (vIdx, field, value) => {
       if (editingId === id) cancelEdit();
       loadData();
     } catch (err) {
-      alert('Delete operation failed');
+      notify('error', err.response?.data?.message || 'Delete operation failed');
     }
   };
 

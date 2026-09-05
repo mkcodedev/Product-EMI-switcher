@@ -76,13 +76,12 @@ export default function ProductDetailPage() {
   const activeImageUrl = resolveMediaUrl(activeImageRaw, 'https://via.placeholder.com/450x450?text=No+Image');
 
   const handleProceed = () => {
-    alert(
-      `Order Selection:\n` +
-      `Model: ${product.name}\n` +
-      `Variant: ${currentVariant.storage} - ${currentVariant.colorName}\n` +
-      `Price: ₹${currentVariant.sellingPrice?.toLocaleString('en-IN')}\n` +
-      `Plan: ₹${Number(currentEmi.monthlyAmount)?.toLocaleString('en-IN')} x ${currentEmi.tenureMonths} Months`
-    );
+    window.dispatchEvent(new CustomEvent('app-notification', {
+      detail: {
+        type: 'info',
+        message: `Order selection ready: ${product.name}, ${currentVariant.storage} ${currentVariant.colorName}, ₹${currentVariant.sellingPrice?.toLocaleString('en-IN')}.`
+      }
+    }));
   };
 
   return (

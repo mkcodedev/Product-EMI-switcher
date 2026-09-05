@@ -41,3 +41,18 @@ button:focus, div:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+@keyframes notification-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, -8px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.notification-enter {
+  animation: notification-enter 240ms ease-out both;
+}
