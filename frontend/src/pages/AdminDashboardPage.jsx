@@ -104,8 +104,11 @@ export default function AdminDashboardPage() {
   }, []);
 
   const handleLogout = async () => {
-    await axiosClient.post('/admin/logout');
-    navigate('/super/admin');
+    try {
+      await axiosClient.post('/admin/logout');
+    } finally {
+      navigate('/super/admin', { replace: true });
+    }
   };
 
   const handleMultipleImageUpload = async (variantIdx, fileList) => {

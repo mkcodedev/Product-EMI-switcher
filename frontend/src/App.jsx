@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import AdminAuthPage from './pages/AdminAuthPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -17,7 +18,14 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/super/admin" element={<AdminAuthPage />} />
-            <Route path="/super/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route
+              path="/super/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
