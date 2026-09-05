@@ -107,6 +107,9 @@ export default function AdminDashboardPage() {
     try {
       await axiosClient.post('/admin/logout');
     } finally {
+      window.dispatchEvent(new CustomEvent('admin-auth-changed', {
+        detail: { authenticated: false }
+      }));
       navigate('/super/admin', { replace: true });
     }
   };

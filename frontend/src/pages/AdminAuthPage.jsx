@@ -36,6 +36,9 @@ export default function AdminAuthPage() {
           email: formData.email,
           password: formData.password
         });
+        window.dispatchEvent(new CustomEvent('admin-auth-changed', {
+          detail: { authenticated: true }
+        }));
         navigate('/super/admin/dashboard');
       } else {
         const res = await axiosClient.post('/admin/signup', formData);
