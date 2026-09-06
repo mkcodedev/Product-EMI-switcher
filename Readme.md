@@ -9,6 +9,17 @@
 
 1Fi Store is a dynamic product catalog for smartphones and EMI-led shopping flows. Product data, variants, EMI plans, reviews, and media are stored in MongoDB rather than hardcoded in the frontend.
 
+## 📱 Product References
+
+| # | Product | Reference Website |
+|---|---------|-------------------|
+| 1 | Apple iPhone 17 Pro (Silver, 256 GB) | [Snapmint](https://snapmint.com/p/apple-iphone-17-pro-silver-256-gb-smart-phones-on-emi) |
+| 2 | Tecno Spark 50 5G (Champagne Gold, 128 GB, 6 GB RAM) | [Snapmint](https://snapmint.com/p/tecno-spark-50-5g-champagne-gold-128-gb-6-gb-ram-smart-phones-on-emi) |
+| 3 | Motorola G57 Power 5G (Fluidity, 128 GB, 8 GB RAM) | [Snapmint](https://snapmint.com/p/motorola-g57-power-5g-fluidity-128-gb-8-gb-ram-smart-phones-on-emi) |
+| 4 | Realme P4 Lite 5G (Mosaic Green, 64 GB, 4 GB RAM) | [Snapmint](https://snapmint.com/p/realme-p4-lite-5g-mosaic-green-64-gb-4-gb-ram-smart-phones-on-emi) |
+| 5 | Vivo T5x 5G (Cyber Green, 256 GB, 8 GB RAM) | [Snapmint](https://snapmint.com/p/vivo-t5x-5g-cyber-green-256-gb-8-gb-ram-smart-phones-on-emi) |
+
+
 ## Contents
 
 - [Highlights](#highlights)
